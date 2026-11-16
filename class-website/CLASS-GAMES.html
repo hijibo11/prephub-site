@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Coding Projects</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1700px;
+            margin: 19px auto;
+            padding: 0 20px;
+            background: #121212;
+            color: #00ff66;
+        }
+        h1 {
+            border-bottom: 2px solid #00ff66;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            color: #00ff66;
+        }
+        p {
+            color: #aaffcc;
+        }
+        .container {
+            display: flex;
+			gap: 25px;
+            align-items: flex-start;
+        }
+        .sidebar1 {
+            display: flex;
+			width: 260px;
+            flex-shrink: 0;
+			flex-direction: column;
+        }
+		 .sidebar2 {
+            display: flex;
+			width: 200px;
+            flex-shrink: 0;
+			flex-direction: column;
+        }
+        .filter-section {
+            margin-bottom: 15px;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #00ff66;
+            background: #1a1a1a;
+            color: #00ff66;
+            cursor: pointer;
+        }
+        select option {
+            background: #1a1a1a;
+            color: #00ff66;
+        }
+        ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+        li {
+            margin: 8px 0;
+            color: #aaffcc;
+        }
+        a {
+            color: #00ff66;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        a:hover {
+            background-color: #00ff66;
+            color: #121212;
+        }
+        .viewer-container {
+            flex-grow: 1;
+        }
+        iframe {
+            width: 100%;
+            height: 750px;
+            border: 2px solid #00ff66;
+            background: #1a1a1a;
+            box-sizing: border-box;
+        }
+        #current-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #00ff66;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Class Projects</h1>
+    <p>Select a category and project from the list to play/view it right here.</p>
+
+    <div class="container">
+			
+		<div class="sidebar1">
+            <div class="filter-section">
+                <label for="category-select"><strong>Category:</strong></label><br><br>
+                <select id="category-select">
+                    <option value="tools">Tools/Other</option>
+                    <option value="games">Games</option>
+                    <option value="assignments">Assignments and Checks</option>
+					<option value="all">All Categories</option>
+                </select>
+            </div>
+            <strong>Projects:</strong>
+            <ul id="project-list"></ul>
+        </div>
+
+        <div class="viewer-container">
+            <div id="current-title">Select a project to view</div>
+            <iframe id="game-frame" src="about:blank"></iframe>
+        </div>
+		
+		<div class = "sidebar2">
+			<label for="sidebar2"><strong>Player Scores:</strong></label><br><br>
+			<p>Name - Value Number<p>
+			</div>
+			
+    </div>
+
+    <script>
+        const projects = [
+            {
+                title: "Home",
+                author: "Website",
+                file: "Opener.html",
+                category: "tools"  
+            },
+			{
+                title: "Santa Sweeper",
+                author: "Mitchell",
+                file: "Santa-Sweeper.html",
+                category: "games" 
+            },
+            {
+                title: "Comp Check 1",
+                author: "Shawn McBride",
+                file: "Comp-Check.html",
+                category: "assignments" 
+            },
+            {
+                title: "Snake Game",
+                author: "Free Domain",
+                file: "Snake-Game.html",
+                category: "games"  
+            },
+            {
+                title: "3D Loop Glider",
+                author: "Shawn McBride",
+                file: "Glider.html",
+                category: "games"  
+            },
+            {
+                title: "Lunar City Builder",
+                author: "Shawn McBride",
+                file: "Lunar-City.html",
+                category: "assignments"  
+            },
+            {
+                title: "Basic Game",
+                author: "Public Use",
+                file: "Basic-Game.html",
+                category: "games"  
+            },
+            {
+                title: "Paper Airplane",
+                author: "Shawn McBride",
+                file: "Paper-Plane.html",
+                category: "games"  
+            }
+        ];
+
+        const listEl = document.getElementById('project-list');
+        const iframeEl = document.getElementById('game-frame');
+        const titleEl = document.getElementById('current-title');
+        const categorySelectEl = document.getElementById('category-select');
+
+        function renderProjects(selectedCategory) {
+            listEl.innerHTML = '';
+
+            const filteredProjects = projects.filter(p => {
+                if (selectedCategory === 'all') return true;
+                return p.category === selectedCategory;
+            });
+
+            if (filteredProjects.length === 0) {
+                listEl.innerHTML = '<li><em>No projects in this category.</em></li>';
+                return;
+            }
+
+            filteredProjects.forEach((p) => {
+                const li = document.createElement('li');
+                const link = document.createElement('a');
+                link.textContent = p.title;
+                
+                link.onclick = () => {
+                    const targetSrc = p.file ? p.file : p.url;
+                    iframeEl.src = targetSrc;
+                    titleEl.textContent = `Viewing: ${p.title} by ${p.author}`;
+                };
+
+                li.appendChild(link);
+                li.appendChild(document.createTextNode(` (${p.author})`));
+                listEl.appendChild(li);
+            });
+        }
+
+        categorySelectEl.addEventListener('change', (e) => {
+            renderProjects(e.target.value);
+        });
+
+        renderProjects('all');
+        if (projects.length > 0) {
+            const first = projects[0];
+            iframeEl.src = first.file ? first.file : first.url;
+            titleEl.textContent = `Viewing: ${first.title} by ${first.author}`;
+        }
+    </script>
+
+</body>
+</html>

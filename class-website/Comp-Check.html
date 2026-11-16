@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Test: Comprehension Check | Big Comprehensive</title>
+    <style>
+        .bc-quiz-wrapper {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            user-select: none;
+        }
+        .bc-hidden { display: none !important; }
+        .bc-alert {
+            background-color: #ffe3e6;
+            color: #cc0000;
+            padding: 10px;
+            border-left: 4px solid #cc0000;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .bc-hint-box {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-left: 4px solid #ffeeba;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-size: 15px;
+            font-style: italic;
+        }
+
+        #bc-quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .bc-stats {
+            font-weight: bold;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        #bc-options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .bc-option-btn {
+            padding: 15px;
+            background-color: #ffffff;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            color: #212529;
+        }
+        .bc-option-btn:hover:not(:disabled) { background-color: #e2e6ea; }
+        
+        /* Immediate Feedback Styles */
+        .bc-option-btn.bc-correct {
+            border-color: #28a745 !important; 
+            background-color: #d4edda !important;
+            color: #155724;
+            font-weight: bold;
+        }
+        .bc-option-btn.bc-incorrect {
+            border-color: #dc3545 !important; 
+            background-color: #f8d7da !important;
+            color: #721c24;
+        }
+        .bc-option-btn:disabled {
+            cursor: default;
+        }
+
+        #bc-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #bc-hint-btn {
+            padding: 10px 15px;
+            background-color: #ffc107;
+            color: #212529;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        #bc-hint-btn:hover:not(:disabled) { background-color: #e0a800; }
+        #bc-hint-btn:disabled { background-color: #ffeeba; color: #6c757d; cursor: not-allowed; }
+
+        #bc-next-btn {
+            padding: 10px 20px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #bc-next-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="bc-quiz-wrapper">
+        <div id="bc-warning-banner" class="bc-hidden bc-alert">
+            <strong>Warning:</strong> Tab switching is recorded. Please keep focus on this test.
+        </div>
+        
+        <div id="bc-quiz-header">
+            <h2>AP CSP: Practice Test & Logic Tracing</h2>
+            <div>
+                <span id="bc-progress" class="bc-stats">Question 1 of 20</span>
+                <span style="margin: 0 10px; color: #ced4da;">|</span>
+                <span id="bc-live-score" class="bc-stats">Points: 0</span>
+            </div>
+        </div>
+
+        <div id="bc-question-container">
+            <p id="bc-question-text" style="white-space: pre-wrap; font-family: monospace; font-size: 15px; background: #eee; padding: 15px; border-radius: 4px; line-height: 1.5;"></p>
+            <div id="bc-hint-container" class="bc-hidden bc-hint-box"></div>
+            <div id="bc-options-grid"></div>
+        </div>
+
+        <div id="bc-controls">
+            <button id="bc-hint-btn">💡 Need a Hint?</button>
+            <button id="bc-next-btn" class="bc-hidden" disabled>Next Question</button>
+        </div>
+
+        <div id="bc-results-container" class="bc-hidden">
+            <h3>Evaluation Complete</h3>
+            <p id="bc-score-display"></p>
+        </div>
+    </div>
+
+    <script>
+        // --- Anti-Cheat Protocols ---
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => {
+            event.preventDefault();
+            alert("Copying test material is not allowed.");
+        });
+
+        let tabSwitchCount = 0;
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'hidden') {
+                tabSwitchCount++;
+                document.getElementById('bc-warning-banner').classList.remove('bc-hidden');
+            }
+        });
+
+        // --- 20 Questions with Hints ---
+        const rawQuestions = [
+            {
+                question: "Variable Assignment:\na <- 5\nb <- 10\nc <- a\na <- b\nb <- c\n\nWhat will be displayed when DISPLAY(a) and DISPLAY(b) are executed?",
+                hint: "Trace the value of 'c' carefully. It is acting as a temporary placeholder so the original value of 'a' isn't lost during the swap.",
+                options: [
+                    "10 followed by 5", // Correct
+                    "5 followed by 10", 
+                    "10 followed by 10", 
+                    "5 followed by 5"
+                ]
+            },
+            {
+                question: "Basic Math and Modulo:\nx <- 17\ny <- x MOD 5\nz <- y + (x / 2) // Assume integer division truncates decimals\n\nWhat is the final value displayed for z?",
+                hint: "MOD gives you the remainder of division. What is the remainder when you divide 17 by 5? Use that number for 'y'.",
+                options: [
+                    "10", // Correct
+                    "11", 
+                    "10.5", 
+                    "8"
+                ]
+            },
+            {
+                question: "Conditional Statements:\nscore <- 85\nIF (score >= 90) {\n  DISPLAY(\"A\")\n} ELSE {\n  IF (score >= 80) {\n    DISPLAY(\"B\")\n  } ELSE {\n    DISPLAY(\"C\")\n  }\n}\n\nWhat is the output of this code?",
+                hint: "Evaluate the very first IF statement condition. Is 85 greater than or equal to 90? If false, the code jumps straight into the ELSE block.",
+                options: [
+                    "B", // Correct
+                    "A", 
+                    "C", 
+                    "Nothing is displayed"
+                ]
+            },
+            {
+                question: "Boolean Logic:\nisWeekend <- true\nisHoliday <- false\nisRaining <- true\nresult <- (isWeekend OR isHoliday) AND (NOT isRaining)\n\nWhat boolean value is assigned to result?",
+                hint: "Evaluate the parentheses first. (true OR false) evaluates to true. What does (NOT true) evaluate to? Then combine them with AND.",
+                options: [
+                    "false", // Correct
+                    "true", 
+                    "null", 
+                    "Syntax Error"
+                ]
+            },
+            {
+                question: "Loop Tracing:\ncount <- 0\nREPEAT 4 TIMES {\n  count <- count + 3\n}\n\nWhat is the final value of count?",
+                hint: "The loop executes its instructions exactly 4 times. If you start at 0 and add 3 four times in a row, what do you get?",
+                options: [
+                    "12", // Correct
+                    "9", 
+                    "15", 
+                    "4"
+                ]
+            },
+            {
+                question: "REPEAT UNTIL Loop:\nnum <- 2\nREPEAT UNTIL (num > 15) {\n  num <- num * 2\n}\n\nWhat is the final output of num?",
+                hint: "Trace the iterations: Loop 1 (num = 4), Loop 2 (num = 8). The loop stops as soon as the condition becomes true.",
+                options: [
+                    "16", // Correct
+                    "15", 
+                    "8", 
+                    "32"
+                ]
+            },
+            {
+                question: "List Traversal:\nscores <- [80, 95, 70, 85]\nhighest <- 0\nFOR EACH item IN scores {\n  IF (item > highest) {\n    highest <- item\n  }\n}\n\nWhat does this algorithm do and what is the final value of highest?",
+                hint: "The variable 'highest' only updates if the current item being checked is larger than the previous 'highest' recorded.",
+                options: [
+                    "Finds the maximum value; highest is 95", // Correct
+                    "Finds the sum of all values; highest is 330", 
+                    "Finds the minimum value; highest is 70", 
+                    "Finds the last value; highest is 85"
+                ]
+            },
+            {
+                question: "List Manipulation (1-Indexed):\nmyList <- [\"Apple\", \"Banana\", \"Cherry\"]\nINSERT(myList, 2, \"Orange\")\nAPPEND(myList, \"Grape\")\nREMOVE(myList, 3)\n\nWhat are the exact contents of myList?",
+                hint: "Remember that AP CSP pseudo-code uses 1-based indexing! The first item is at index 1. Write out the list after every single step.",
+                options: [
+                    "[\"Apple\", \"Orange\", \"Cherry\", \"Grape\"]", // Correct
+                    "[\"Apple\", \"Orange\", \"Banana\", \"Grape\"]", 
+                    "[\"Apple\", \"Banana\", \"Cherry\", \"Grape\"]", 
+                    "[\"Apple\", \"Orange\", \"Banana\", \"Cherry\", \"Grape\"]"
+                ]
+            },
+            {
+                question: "String Concatenation:\nword1 <- \"cat\"\nword2 <- \"dog\"\nword3 <- \"bird\"\nresult <- word2 + word1\nresult <- result + word3\n\nWhat is the exact string output?",
+                hint: "Pay very close attention to the order of variables in the first addition. It is word2 + word1, not the other way around.",
+                options: [
+                    "dogcatbird", // Correct
+                    "catdogbird", 
+                    "dogbirdcat", 
+                    "birddogcat"
+                ]
+            },
+            {
+                question: "Nested Loops:\noutput <- \"\"\nREPEAT 3 TIMES {\n  REPEAT 2 TIMES {\n    output <- output + \"*\"\n  }\n  output <- output + \"-\"\n}\n\nWhat is the final string displayed?",
+                hint: "Read from the inside out. For every single dash (-) that gets printed by the outer loop, how many asterisks (*) are printed by the inner loop?",
+                options: [
+                    "**-**-**-", // Correct
+                    "***-***-", 
+                    "******-", 
+                    "*-*-*-"
+                ]
+            },
+            {
+                question: "Robot Grid Navigation:\nAssume a robot is facing East.\nREPEAT 3 TIMES {\n  MOVE_FORWARD()\n  ROTATE_LEFT()\n  MOVE_FORWARD()\n}\nROTATE_LEFT()\nROTATE_LEFT()\nROTATE_LEFT()\n\nWhat single command is mathematically equivalent to three ROTATE_LEFT() commands?",
+                hint: "Imagine you are facing North. If you turn 90 degrees left three times, which compass direction are you now facing? What is the faster way to turn there?",
+                options: [
+                    "ROTATE_RIGHT()", // Correct
+                    "MOVE_BACKWARD()", 
+                    "ROTATE_LEFT()", 
+                    "MOVE_FORWARD()"
+                ]
+            },
+            {
+                question: "Custom Procedures:\nPROCEDURE mystery(x, y) {\n  IF (x > y) {\n    RETURN x - y\n  } ELSE {\n    RETURN y - x\n  }\n}\n\nWhat is the output for mystery(4, 9)?",
+                hint: "Plug the numbers in: x is 4, y is 9. Is 4 > 9? Since it is false, you skip the IF block and run the math in the ELSE block.",
+                options: [
+                    "5", // Correct
+                    "-5", 
+                    "9", 
+                    "4"
+                ]
+            },
+            {
+                question: "Algorithm Efficiency: What is the primary difference between an algorithm that runs in a reasonable time versus unreasonable time?",
+                options: [
+                    "Reasonable algorithms handle large inputs practically (polynomial/linear time), while unreasonable ones take practically infinite time for large inputs.", // Correct
+                    "Reasonable algorithms use FOR loops, while unreasonable ones use recursive procedures.", 
+                    "Reasonable algorithms never encounter runtime errors, while unreasonable algorithms crash.", 
+                    "Reasonable algorithms use heuristics, while unreasonable ones use binary searches."
+                ],
+                hint: "Reasonable generally means the algorithm scales at a manageable rate (like linear or polynomial), while unreasonable scales factorially or exponentially."
+            },
+            {
+                question: "Heuristics: In what specific scenario would a programmer choose to use a heuristic rather than an exact algorithm?",
+                hint: "Think of a heuristic as a 'rule of thumb' or an educated guess. You use them when a mathematically perfect answer would take centuries to calculate.",
+                options: [
+                    "When an exact algorithm runs in unreasonable time, allowing them to find a 'good enough' solution practically.", // Correct
+                    "When the data is unsorted and they need to use a Binary Search.", 
+                    "When they need a mathematically perfect answer and have unlimited computing power.", 
+                    "When they are programming a pseudorandom number generator."
+                ]
+            },
+            {
+                question: "Binary Search: You have a sorted list of 1,000 items. What is the maximum number of guesses it would take to find an item using Binary Search?",
+                hint: "Binary search cuts the remaining options in half with every single guess. Calculate 2^10.",
+                options: [
+                    "10", // Correct
+                    "500", 
+                    "1000", 
+                    "20"
+                ]
+            },
+            {
+                question: "Procedural Abstraction: How does extracting a block of code into a named procedure manage complexity in a program?",
+                hint: "Abstraction is about hiding the complex details so you can focus on the big picture. You don't need to know HOW a procedure works, just what it does.",
+                options: [
+                    "It allows code to be reused without rewriting it and hides the specific inner workings from the rest of the program.", // Correct
+                    "It compresses the file size of the program so it can be downloaded faster.", 
+                    "It automatically translates the code from high-level languages down to binary machine code.", 
+                    "It removes the need for if/else selection statements."
+                ]
+            },
+            {
+                question: "Simulation Limitations: What is a key limitation of using computer simulations to study real-world phenomena?",
+                hint: "A simulation is essentially just a giant math equation. What happens if the programmer forgets to include an important variable in that equation?",
+                options: [
+                    "Simulations are simplified models; if a programmer fails to include an important variable, the results will be inaccurate.", // Correct
+                    "Simulations can only run linear algorithms, not exponential ones.", 
+                    "Simulations require heuristic routing to calculate packets.", 
+                    "Simulations cannot use pseudorandom number generators."
+                ]
+            },
+            {
+                question: "Randomness: Why are pseudorandom number generators (PRNGs) used in programming not considered 'truly' random?",
+                hint: "Computers are logical machines; they can't 'think' of a random number. They use complex math formulas and a starting 'seed' to fake it.",
+                options: [
+                    "They follow a fixed set of mathematical rules and a seed, making the sequence entirely predictable if the seed is known.", // Correct
+                    "They can only generate numbers between 0 and 1.", 
+                    "They require a constant connection to the Internet to pull data.", 
+                    "They are susceptible to integer overflow errors."
+                ]
+            },
+            {
+                question: "Binary Conversions: What is the binary number 10110 converted to decimal?",
+                hint: "Write out the base-2 place values from right to left: 16, 8, 4, 2, 1. Add up the place values where a '1' is present.",
+                options: [
+                    "22", // Correct
+                    "20", 
+                    "24", 
+                    "18"
+                ]
+            },
+            {
+                question: "Data Compression: In which situation would you prefer lossy compression over lossless compression?",
+                hint: "Lossy compression means permanently losing some of the file's original data to save space. Would you want that for an executable program file or a song?",
+                options: [
+                    "For streaming audio or web images where load times and storage space are more important than perfect quality.", // Correct
+                    "For text documents where every single word and character must be preserved perfectly.", 
+                    "For executable program files where losing a byte of data would corrupt the software.", 
+                    "For encrypting passwords in a database."
+                ]
+            }
+        ];
+
+        // --- Test Engine Logic ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let randomizedQuestions = [];
+        let hasAnsweredCurrent = false;
+
+        function shuffleArray(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function initTest() {
+            randomizedQuestions = shuffleArray(rawQuestions);
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            hasAnsweredCurrent = false; 
+            const qData = randomizedQuestions[currentQuestionIndex];
+            
+            // Reset UI for new question
+            document.getElementById('bc-progress').innerText = `Question ${currentQuestionIndex + 1} of ${randomizedQuestions.length}`;
+            document.getElementById('bc-question-text').innerText = qData.question;
+            
+            // Reset Hint Box
+            const hintContainer = document.getElementById('bc-hint-container');
+            hintContainer.classList.add('bc-hidden');
+            hintContainer.innerText = "";
+            const hintBtn = document.getElementById('bc-hint-btn');
+            hintBtn.disabled = false;
+            hintBtn.onclick = () => {
+                hintContainer.innerText = `💡 ${qData.hint}`;
+                hintContainer.classList.remove('bc-hidden');
+                hintBtn.disabled = true;
+            };
+            
+            // Load Options
+            const optionsGrid = document.getElementById('bc-options-grid');
+            optionsGrid.innerHTML = ''; 
+            
+            const correctText = qData.options[0];
+            const currentShuffledOptions = shuffleArray(qData.options);
+
+            currentShuffledOptions.forEach(optText => {
+                const btn = document.createElement('button');
+                btn.className = 'bc-option-btn';
+                btn.innerText = optText;
+                btn.onclick = () => selectOption(btn, optText === correctText, correctText);
+                optionsGrid.appendChild(btn);
+            });
+
+            const nextBtn = document.getElementById('bc-next-btn');
+            nextBtn.classList.add('bc-hidden');
+            nextBtn.disabled = true;
+            nextBtn.onclick = handleNext;
+        }
+
+        function selectOption(selectedBtn, isCorrect, correctText) {
+            if (hasAnsweredCurrent) return; 
+            hasAnsweredCurrent = true;
+
+            // Lock the hint button if they didn't use it
+            document.getElementById('bc-hint-btn').disabled = true;
+
+            const allButtons = document.querySelectorAll('.bc-option-btn');
+            
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.innerText === correctText) {
+                    btn.classList.add('bc-correct');
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+                document.getElementById('bc-live-score').innerText = `Points: ${score}`;
+            } else {
+                selectedBtn.classList.add('bc-incorrect');
+            }
+
+            document.getElementById('bc-next-btn').classList.remove('bc-hidden');
+            document.getElementById('bc-next-btn').disabled = false;
+        }
+
+        function handleNext() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < randomizedQuestions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('bc-question-container').classList.add('bc-hidden');
+            document.getElementById('bc-controls').classList.add('bc-hidden');
+            
+            const resultsContainer = document.getElementById('bc-results-container');
+            resultsContainer.classList.remove('bc-hidden');
+            
+            const percentage = ((score / randomizedQuestions.length) * 100).toFixed(1);
+            document.getElementById('bc-score-display').innerHTML = `
+                You scored ${score} out of ${randomizedQuestions.length} (${percentage}%). <br><br>
+                <em>Tab Switch Violations: ${tabSwitchCount}</em>
+            `;
+        }
+
+        initTest();
+    </script>
+</body>
+</html>
